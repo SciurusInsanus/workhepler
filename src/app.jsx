@@ -79,16 +79,27 @@ function FormParser() {
       ["Адрес подачи", data.pickup_address],
       ["Контактное лицо, тел.", `${data.phone}, ${data.full_name}`],
       ["Вид животного", data.animal_type],
+      ["", ""],
       ["Пункт назначения", data.destination_address],
       ["Время прибытия", data.arrival_time],
-      ["Особые отметки", `Поездка туда и обратно: ${data.return_needed}\n${data.socialization}`]
+      ["Особые отметки", `Поездка туда и обратно: ${data.return_needed}\n${data.socialization}`],
+      ["", ""],
+      ["Комментарии водителя:", ""]
     ];
 
     const worksheet = XLSX.utils.aoa_to_sheet(rows);
     worksheet['!cols'] = [{ wch: 30 }, { wch: 60 }];
+
     rows.forEach((row, i) => {
-      const cell = worksheet[`A${i + 1}`];
-      if (cell) cell.s = { font: { bold: true } };
+      worksheet[`A${i + 1}`] = worksheet[`A${i + 1}`] || { t: "s", v: "" };
+      worksheet[`B${i + 1}`] = worksheet[`B${i + 1}`] || { t: "s", v: "" };
+      if (row[0]) worksheet[`A${i + 1}`].s = { font: { bold: true } };
+      worksheet[`A${i + 1}`].s = Object.assign(worksheet[`A${i + 1}`].s || {}, { border: borderStyle });
+      worksheet[`B${i + 1}`].s = { border: borderStyle };
+      if (row[0] === "" && row[1] === "") {
+        worksheet[`A${i + 1}`].s.fill = { fgColor: { rgb: "EDEDED" } };
+        worksheet[`B${i + 1}`].s.fill = { fgColor: { rgb: "EDEDED" } };
+      }
     });
 
     const workbook = XLSX.utils.book_new();
@@ -98,6 +109,13 @@ function FormParser() {
     const fileName = `Заявка_${(data.trip_date || "дата").replace(/\./g, "-")}.xlsx`;
     saveAs(blob, fileName);
   }
+
+  const borderStyle = {
+    top: { style: "thin" },
+    bottom: { style: "thin" },
+    left: { style: "thin" },
+    right: { style: "thin" }
+  };
 
   return (
     <div className="p-6 space-y-6">

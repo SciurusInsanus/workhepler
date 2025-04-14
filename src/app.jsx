@@ -5,6 +5,7 @@ import { saveAs } from "file-saver";
 function FormParser() {
   const [input, setInput] = useState("");
   const [outputs, setOutputs] = useState({ tableRow: "", directorMsg: "", tableCopy: "" });
+  const [data, setData] = useState({});
 
   function parseForm(text) {
     function extract(regex) {
@@ -12,7 +13,7 @@ function FormParser() {
       return match ? match[1].trim() : "";
     }
 
-    const data = {
+    const extractedData = {
       email: extract(/Электронная почта:\s*(.+)/),
       rules_agreement: extract(/ознакомился.*с ними:\s*(.+)/),
       full_name: extract(/Ваше ФИО:\s*(.+)/),
@@ -34,31 +35,33 @@ function FormParser() {
       data_policy_agreement: extract(/согласие.*:\s*(Да|Нет)/),
     };
 
+    setData(extractedData);
+
     const tableRow = [
-      data.trip_date,
-      data.email,
-      data.rules_agreement,
-      data.full_name,
-      data.phone,
-      data.animal_type,
-      data.animal_count,
-      data.health_status,
-      data.shelter_name,
-      `${data.full_name}, ${data.phone}`,
-      data.pickup_address,
-      data.destination_address,
-      `подача ${data.pickup_time}, прием ${data.arrival_time}`,
-      data.trip_purpose,
-      data.car_reaction,
-      data.socialization,
-      data.responsibility_agreement,
-      data.data_policy_agreement,
-      data.return_needed
+      extractedData.trip_date,
+      extractedData.email,
+      extractedData.rules_agreement,
+      extractedData.full_name,
+      extractedData.phone,
+      extractedData.animal_type,
+      extractedData.animal_count,
+      extractedData.health_status,
+      extractedData.shelter_name,
+      `${extractedData.full_name}, ${extractedData.phone}`,
+      extractedData.pickup_address,
+      extractedData.destination_address,
+      `подача ${extractedData.pickup_time}, прием ${extractedData.arrival_time}`,
+      extractedData.trip_purpose,
+      extractedData.car_reaction,
+      extractedData.socialization,
+      extractedData.responsibility_agreement,
+      extractedData.data_policy_agreement,
+      extractedData.return_needed
     ].join("\t");
 
-    const directorMsg = `Катя, поступила заявка на ${data.trip_date}\nАдрес подачи: ${data.pickup_address}\nВид животного: ${data.animal_type}\nПункт назначения: ${data.destination_address}\nЦель поездки: ${data.trip_purpose}\nВремя подачи: ${data.pickup_time}\nВремя прибытия: ${data.arrival_time}\nПоездка туда и обратно: ${data.return_needed}\nДополнительная информация:\nКуратор - ${data.full_name}`;
+    const directorMsg = `Катя, поступила заявка на ${extractedData.trip_date}\nАдрес подачи: ${extractedData.pickup_address}\nВид животного: ${extractedData.animal_type}\nПункт назначения: ${extractedData.destination_address}\nЦель поездки: ${extractedData.trip_purpose}\nВремя подачи: ${extractedData.pickup_time}\nВремя прибытия: ${extractedData.arrival_time}\nПоездка туда и обратно: ${extractedData.return_needed}\nДополнительная информация:\nКуратор - ${extractedData.full_name}`;
 
-    const tableCopy = `Дата: ${data.trip_date.split('-').reverse().join('.')}\nВремя подачи: ${data.pickup_time}\nАдрес подачи: ${data.pickup_address}\nКонтактное лицо, тел.: ${data.phone}, ${data.full_name}\nВид животного: ${data.animal_type}\n\nПункт назначения: ${data.destination_address}\nВремя прибытия: ${data.arrival_time}\nОсобые отметки: Поездка туда и обратно: ${data.return_needed}\n${data.socialization}`;
+    const tableCopy = `Дата: ${extractedData.trip_date.split('-').reverse().join('.')}\nВремя подачи: ${extractedData.pickup_time}\nАдрес подачи: ${extractedData.pickup_address}\nКонтактное лицо, тел.: ${extractedData.phone}, ${extractedData.full_name}\nВид животного: ${extractedData.animal_type}\n\nПункт назначения: ${extractedData.destination_address}\nВремя прибытия: ${extractedData.arrival_time}\nОсобые отметки: Поездка туда и обратно: ${extractedData.return_needed}\n${extractedData.socialization}`;
 
     setOutputs({ tableRow, directorMsg, tableCopy });
   }
@@ -71,31 +74,28 @@ function FormParser() {
 
   function generateExcel() {
     const rows = [
-      [
-        "Дата", "Время подачи", "Адрес подачи", "Контактное лицо, тел.",
-        "Вид животного", "Пункт назначения", "Время прибытия",
-        "Особые отметки"
-      ],
-      [
-        outputs.tableCopy.match(/Дата: (.+)/)?.[1] || "",
-        outputs.tableCopy.match(/Время подачи: (.+)/)?.[1] || "",
-        outputs.tableCopy.match(/Адрес подачи: (.+)/)?.[1] || "",
-        outputs.tableCopy.match(/Контактное лицо, тел.: (.+)/)?.[1] || "",
-        outputs.tableCopy.match(/Вид животного: (.+)/)?.[1] || "",
-        outputs.tableCopy.match(/Пункт назначения: (.+)/)?.[1] || "",
-        outputs.tableCopy.match(/Время прибытия: (.+)/)?.[1] || "",
-        outputs.tableCopy.match(/Особые отметки: (.+)/)?.[1] || ""
-      ]
+      ["Дата", data.trip_date?.split("-").reverse().join(".") || ""],
+      ["Время подачи", data.pickup_time],
+      ["Адрес подачи", data.pickup_address],
+      ["Контактное лицо, тел.", `${data.phone}, ${data.full_name}`],
+      ["Вид животного", data.animal_type],
+      ["Пункт назначения", data.destination_address],
+      ["Время прибытия", data.arrival_time],
+      ["Особые отметки", `Поездка туда и обратно: ${data.return_needed}\n${data.socialization}`]
     ];
 
     const worksheet = XLSX.utils.aoa_to_sheet(rows);
+    worksheet['!cols'] = [{ wch: 30 }, { wch: 60 }];
+    rows.forEach((row, i) => {
+      const cell = worksheet[`A${i + 1}`];
+      if (cell) cell.s = { font: { bold: true } };
+    });
+
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Заявка");
-
-    const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+    const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array", cellStyles: true });
     const blob = new Blob([excelBuffer], { type: "application/octet-stream" });
-
-    const fileName = `Заявка_${rows[1][0].replace(/\./g, "-") || "дата"}.xlsx`;
+    const fileName = `Заявка_${(data.trip_date || "дата").replace(/\./g, "-")}.xlsx`;
     saveAs(blob, fileName);
   }
 

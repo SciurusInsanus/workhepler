@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 
 function FormParser() {
   const [input, setInput] = useState("");
@@ -54,59 +56,47 @@ function FormParser() {
       data.return_needed
     ].join("\t");
 
-    const directorMsg = `Катя, поступила заявка на ${data.trip_date}
-Адрес подачи: ${data.pickup_address}
-Вид животного: ${data.animal_type}
-Пункт назначения: ${data.destination_address}
-Цель поездки: ${data.trip_purpose}
-Время подачи: ${data.pickup_time}
-Время прибытия: ${data.arrival_time}
-Поездка туда и обратно: ${data.return_needed}
-Дополнительная информация:
-Куратор - ${data.full_name}`;
+    const directorMsg = `Катя, поступила заявка на ${data.trip_date}\nАдрес подачи: ${data.pickup_address}\nВид животного: ${data.animal_type}\nПункт назначения: ${data.destination_address}\nЦель поездки: ${data.trip_purpose}\nВремя подачи: ${data.pickup_time}\nВремя прибытия: ${data.arrival_time}\nПоездка туда и обратно: ${data.return_needed}\nДополнительная информация:\nКуратор - ${data.full_name}`;
 
-    const tableCopy = `Дата: ${data.trip_date.split('-').reverse().join('.')}
-Время подачи: ${data.pickup_time}
-Адрес подачи: ${data.pickup_address}
-Контактное лицо, тел.: ${data.phone}, ${data.full_name}
-Вид животного: ${data.animal_type}
-
-Пункт назначения: ${data.destination_address}
-Время прибытия: ${data.arrival_time}
-Особые отметки: Поездка туда и обратно: ${data.return_needed}
-${data.socialization}`;
+    const tableCopy = `Дата: ${data.trip_date.split('-').reverse().join('.')}\nВремя подачи: ${data.pickup_time}\nАдрес подачи: ${data.pickup_address}\nКонтактное лицо, тел.: ${data.phone}, ${data.full_name}\nВид животного: ${data.animal_type}\n\nПункт назначения: ${data.destination_address}\nВремя прибытия: ${data.arrival_time}\nОсобые отметки: Поездка туда и обратно: ${data.return_needed}\n${data.socialization}`;
 
     setOutputs({ tableRow, directorMsg, tableCopy });
   }
 
   function copyToClipboard(text) {
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(text).then(() => {
-        alert("Скопировано в буфер обмена!");
-      }).catch(() => {
-        fallbackCopyTextToClipboard(text);
-      });
-    } else {
-      fallbackCopyTextToClipboard(text);
-    }
+    navigator.clipboard.writeText(text).then(() => {
+      alert("Скопировано в буфер обмена!");
+    });
   }
 
-  function fallbackCopyTextToClipboard(text) {
-    const textarea = document.createElement("textarea");
-    textarea.value = text;
-    textarea.style.position = "fixed";
-    document.body.appendChild(textarea);
-    textarea.focus();
-    textarea.select();
+  function generateExcel() {
+    const rows = [
+      [
+        "Дата", "Время подачи", "Адрес подачи", "Контактное лицо, тел.",
+        "Вид животного", "Пункт назначения", "Время прибытия",
+        "Особые отметки"
+      ],
+      [
+        outputs.tableCopy.match(/Дата: (.+)/)?.[1] || "",
+        outputs.tableCopy.match(/Время подачи: (.+)/)?.[1] || "",
+        outputs.tableCopy.match(/Адрес подачи: (.+)/)?.[1] || "",
+        outputs.tableCopy.match(/Контактное лицо, тел.: (.+)/)?.[1] || "",
+        outputs.tableCopy.match(/Вид животного: (.+)/)?.[1] || "",
+        outputs.tableCopy.match(/Пункт назначения: (.+)/)?.[1] || "",
+        outputs.tableCopy.match(/Время прибытия: (.+)/)?.[1] || "",
+        outputs.tableCopy.match(/Особые отметки: (.+)/)?.[1] || ""
+      ]
+    ];
 
-    try {
-      const successful = document.execCommand('copy');
-      alert(successful ? "Скопировано в буфер обмена!" : "Не удалось скопировать.");
-    } catch (err) {
-      alert("Ошибка при копировании");
-    }
+    const worksheet = XLSX.utils.aoa_to_sheet(rows);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Заявка");
 
-    document.body.removeChild(textarea);
+    const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+    const blob = new Blob([excelBuffer], { type: "application/octet-stream" });
+
+    const fileName = `Заявка_${rows[1][0].replace(/\./g, "-") || "дата"}.xlsx`;
+    saveAs(blob, fileName);
   }
 
   return (
@@ -140,7 +130,8 @@ ${data.socialization}`;
       <div>
         <h3 className="font-semibold">Заявка для таблицы:</h3>
         <textarea value={outputs.tableCopy} readOnly rows={8} style={{ width: "100%", padding: "10px" }} />
-        <button onClick={() => copyToClipboard(outputs.tableCopy)} style={{ marginTop: "5px" }}>📋 Копировать</button>
+        <button onClick={() => copyToClipboard(outputs.tableCopy)} style={{ marginTop: "5px", marginRight: "10px" }}>📋 Копировать</button>
+        <button onClick={generateExcel} style={{ marginTop: "5px" }}>📄 Скачать как Excel</button>
       </div>
     </div>
   );

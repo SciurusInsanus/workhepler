@@ -65,32 +65,44 @@ function FormParser() {
 
     const tableCopy = `Дата: ${extractedData.trip_date?.split('-').reverse().join('.')}\nВремя подачи: ${extractedData.pickup_time}\nАдрес подачи: ${extractedData.pickup_address}\nКонтактное лицо, тел.: ${extractedData.phone}, ${extractedData.full_name}\nВид животного: ${extractedData.animal_type}\n\nПункт назначения: ${extractedData.destination_address}\nВремя прибытия: ${extractedData.arrival_time}\nОсобые отметки: ${extractedData.return_needed === "Да" ? "Поездка туда и обратно" : "Поездка в один конец"}\n${extractedData.socialization}`;
 
-
     setOutputs({ tableRow, directorMsg, tableCopy });
   }
 
+  // ✅ Новый способ копирования (работает везде)
   function copyToClipboard(text) {
-    navigator.clipboard.writeText(text).then(() => {
-      alert("Скопировано в буфер обмена!");
-    });
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.style.position = "fixed";
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+
+    try {
+      const successful = document.execCommand("copy");
+      alert(successful ? "Скопировано в буфер обмена!" : "Не удалось скопировать.");
+    } catch (err) {
+      alert("Ошибка при копировании: " + err);
+    }
+
+    document.body.removeChild(textarea);
   }
 
   function generateExcel() {
-const tripDirection = data.return_needed === "Да" ? "Поездка туда и обратно" : "Поездка в один конец";
+    const tripDirection = data.return_needed === "Да" ? "Поездка туда и обратно" : "Поездка в один конец";
 
-const rows = [
-  ["Дата", data.trip_date?.split("-").reverse().join(".") || ""],
-  ["Время подачи", data.pickup_time],
-  ["Адрес подачи", data.pickup_address],
-  ["Контактное лицо, тел.", `${data.phone}, ${data.full_name}`],
-  ["Вид животного", data.animal_type],
-  ["", ""],
-  ["Пункт назначения", data.destination_address],
-  ["Время прибытия", data.arrival_time],
-  ["Особые отметки", `${tripDirection} \n${data.socialization}`],
-  ["", ""],
-  ["Комментарии водителя:", ""]
-];
+    const rows = [
+      ["Дата", data.trip_date?.split("-").reverse().join(".") || ""],
+      ["Время подачи", data.pickup_time],
+      ["Адрес подачи", data.pickup_address],
+      ["Контактное лицо, тел.", `${data.phone}, ${data.full_name}`],
+      ["Вид животного", data.animal_type],
+      ["", ""],
+      ["Пункт назначения", data.destination_address],
+      ["Время прибытия", data.arrival_time],
+      ["Особые отметки", `${tripDirection} \n${data.socialization}`],
+      ["", ""],
+      ["Комментарии водителя:", ""]
+    ];
 
     const worksheet = XLSX.utils.aoa_to_sheet(rows);
     worksheet['!cols'] = [{ wch: 30 }, { wch: 60 }];
@@ -175,7 +187,6 @@ const rows = [
       <div>
         <h3 className="font-semibold">Заявка для таблицы:</h3>
         <textarea value={outputs.tableCopy} readOnly rows={8} style={{ width: "100%", padding: "10px" }} />
-        <button onClick={() => copyToClipboard(outputs.tableCopy)} style={{ marginTop: "5px", marginRight: "10px" }}>📋 Копировать</button>
         <button onClick={generateExcel} style={{ marginTop: "5px" }}>📄 Скачать как Excel</button>
       </div>
     </div>

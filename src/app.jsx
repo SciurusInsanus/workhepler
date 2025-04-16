@@ -83,12 +83,11 @@ const rows = [
   ["Время подачи", data.pickup_time],
   ["Адрес подачи", data.pickup_address],
   ["Контактное лицо, тел.", `${data.phone}, ${data.full_name}`],
-  ["", ""], // Пустая строка — разделитель
   ["Вид животного", data.animal_type],
   ["", ""],
   ["Пункт назначения", data.destination_address],
   ["Время прибытия", data.arrival_time],
-  ["Особые отметки", `${tripDirection}\n${data.socialization}`],
+  ["Особые отметки", `${tripDirection} \n${data.socialization}`],
   ["", ""],
   ["Комментарии водителя:", ""]
 ];

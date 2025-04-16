@@ -63,7 +63,7 @@ function FormParser() {
 
     const directorMsg = `Катя, поступила заявка на ${extractedData.trip_date}\nАдрес подачи: ${extractedData.pickup_address}\nВид животного: ${extractedData.animal_type}\nПункт назначения: ${extractedData.destination_address}\nЦель поездки: ${extractedData.trip_purpose}\nВремя подачи: ${extractedData.pickup_time}\nВремя прибытия: ${extractedData.arrival_time}\nПоездка туда и обратно: ${extractedData.return_needed}\nДополнительная информация:\nКуратор - ${extractedData.full_name}`;
 
-    const tableCopy = `Дата: ${extractedData.trip_date?.split('-').reverse().join('.')}\nВремя подачи: ${extractedData.pickup_time}\nАдрес подачи: ${extractedData.pickup_address}\nКонтактное лицо, тел.: ${extractedData.phone}, ${extractedData.full_name}\nВид животного: ${extractedData.animal_type}\n\nПункт назначения: ${extractedData.destination_address}\nВремя прибытия: ${extractedData.arrival_time}\nОсобые отметки: Поездка туда и обратно: ${extractedData.return_needed}\n${extractedData.socialization}`;
+    const tableCopy = `Дата: ${extractedData.trip_date?.split('-').reverse().join('.')}\nВремя подачи: ${extractedData.pickup_time}\nАдрес подачи: ${extractedData.pickup_address}\nКонтактное лицо, тел.: ${extractedData.phone}, ${extractedData.full_name}\nВид животного: ${extractedData.animal_type}\n\nПункт назначения: ${extractedData.destination_address}\nВремя прибытия: ${extractedData.arrival_time}\nОсобые отметки: ${extractedData.return_needed === "Да" ? "Поездка туда и обратно" : "Поездка в один конец"}\n${extractedData.socialization}`;
 
     setOutputs({ tableRow, directorMsg, tableCopy });
   }
@@ -75,19 +75,23 @@ function FormParser() {
   }
 
   function generateExcel() {
-    const rows = [
-      ["Дата", data.trip_date?.split("-").reverse().join(".") || ""],
-      ["Время подачи", data.pickup_time],
-      ["Адрес подачи", data.pickup_address],
-      ["Контактное лицо, тел.", `${data.phone}, ${data.full_name}`],
-      ["Вид животного", data.animal_type],
-      ["", ""],
-      ["Пункт назначения", data.destination_address],
-      ["Время прибытия", data.arrival_time],
-      ["Особые отметки", `Поездка туда и обратно: ${data.return_needed}\n${data.socialization}`],
-      ["", ""],
-      ["Комментарии водителя:", ""]
-    ];
+const tripDirection = data.return_needed === "Да" ? "Поездка туда и обратно" : "Поездка в один конец";
+
+const rows = [
+  ["Дата", data.trip_date?.split("-").reverse().join(".") || ""],
+  ["Время подачи", data.pickup_time],
+  ["Адрес подачи", data.pickup_address],
+  ["Контактное лицо, тел.", `${data.phone}, ${data.full_name}`],
+  ["", ""], // Пустая строка — разделитель
+  ["Вид животного", data.animal_type],
+  ["", ""],
+  ["Пункт назначения", data.destination_address],
+  ["Время прибытия", data.arrival_time],
+  ["Особые отметки", `${tripDirection}\n${data.socialization}`],
+  ["", ""],
+  ["Комментарии водителя:", ""]
+];
+
 
     const worksheet = XLSX.utils.aoa_to_sheet(rows);
     worksheet['!cols'] = [{ wch: 30 }, { wch: 60 }];

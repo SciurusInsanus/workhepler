@@ -61,31 +61,10 @@ function FormParser() {
       extractedData.return_needed
     ].join("\t");
 
-    const directionText = extractedData.return_needed === "Да"
-      ? "Поездка туда и обратно"
-      : "Поездка в один конец";
+    const directorMsg = `Катя, поступила заявка на ${extractedData.trip_date}\nАдрес подачи: ${extractedData.pickup_address}\nВид животного: ${extractedData.animal_type}\nПункт назначения: ${extractedData.destination_address}\nЦель поездки: ${extractedData.trip_purpose}\nВремя подачи: ${extractedData.pickup_time}\nВремя прибытия: ${extractedData.arrival_time}\nПоездка туда и обратно: ${extractedData.return_needed}\nДополнительная информация:\nКуратор - ${extractedData.full_name}`;
 
-    const directorMsg = `Катя, поступила заявка на ${extractedData.trip_date}
-Адрес подачи: ${extractedData.pickup_address}
-Вид животного: ${extractedData.animal_type}
-Пункт назначения: ${extractedData.destination_address}
-Цель поездки: ${extractedData.trip_purpose}
-Время подачи: ${extractedData.pickup_time}
-Время прибытия: ${extractedData.arrival_time}
-Поездка туда и обратно: ${extractedData.return_needed}
-Дополнительная информация:
-Куратор - ${extractedData.full_name}`;
+    const tableCopy = `Дата: ${extractedData.trip_date?.split('-').reverse().join('.')}\nВремя подачи: ${extractedData.pickup_time}\nАдрес подачи: ${extractedData.pickup_address}\nКонтактное лицо, тел.: ${extractedData.phone}, ${extractedData.full_name}\nВид животного: ${extractedData.animal_type}\n\nПункт назначения: ${extractedData.destination_address}\nВремя прибытия: ${extractedData.arrival_time}\nОсобые отметки: ${extractedData.return_needed === "Да" ? "Поездка туда и обратно" : "Поездка в один конец"}\n${extractedData.socialization}`;
 
-    const tableCopy = `Дата: ${extractedData.trip_date.split('-').reverse().join('.')}
-Время подачи: ${extractedData.pickup_time}
-Адрес подачи: ${extractedData.pickup_address}
-Контактное лицо, тел.: ${extractedData.phone}, ${extractedData.full_name}
-Вид животного: ${extractedData.animal_type}
-
-Пункт назначения: ${extractedData.destination_address}
-Время прибытия: ${extractedData.arrival_time}
-Особые отметки: ${directionText}
-${extractedData.socialization}`;
 
     setOutputs({ tableRow, directorMsg, tableCopy });
   }
@@ -97,58 +76,35 @@ ${extractedData.socialization}`;
   }
 
   function generateExcel() {
-    const tripDirection = data.return_needed === "Да"
-      ? "Поездка туда и обратно"
-      : "Поездка в один конец";
+const tripDirection = data.return_needed === "Да" ? "Поездка туда и обратно" : "Поездка в один конец";
 
-    const rows = [
-      ["Дата", data.trip_date?.split("-").reverse().join(".") || ""],
-      ["Время подачи", data.pickup_time],
-      ["Адрес подачи", data.pickup_address],
-      ["Контактное лицо, тел.", `${data.phone}, ${data.full_name}`],
-      ["", ""],
-      ["Вид животного", data.animal_type],
-      ["", ""],
-      ["Пункт назначения", data.destination_address],
-      ["Время прибытия", data.arrival_time],
-      ["Особые отметки", `${tripDirection}\n${data.socialization}`],
-      ["", ""],
-      ["Комментарии водителя:", ""]
-    ];
+const rows = [
+  ["Дата", data.trip_date?.split("-").reverse().join(".") || ""],
+  ["Время подачи", data.pickup_time],
+  ["Адрес подачи", data.pickup_address],
+  ["Контактное лицо, тел.", `${data.phone}, ${data.full_name}`],
+  ["", ""], // Пустая строка — разделитель
+  ["Вид животного", data.animal_type],
+  ["", ""],
+  ["Пункт назначения", data.destination_address],
+  ["Время прибытия", data.arrival_time],
+  ["Особые отметки", `${tripDirection}\n${data.socialization}`],
+  ["", ""],
+  ["Комментарии водителя:", ""]
+];
 
     const worksheet = XLSX.utils.aoa_to_sheet(rows);
     worksheet['!cols'] = [{ wch: 30 }, { wch: 60 }];
 
-    const borderStyle = {
-      top: { style: "thin" },
-      bottom: { style: "thin" },
-      left: { style: "thin" },
-      right: { style: "thin" }
-    };
-
     rows.forEach((row, i) => {
-      const cellA = `A${i + 1}`;
-      const cellB = `B${i + 1}`;
-
-      worksheet[cellA] = worksheet[cellA] || { t: "s", v: "" };
-      worksheet[cellB] = worksheet[cellB] || { t: "s", v: "" };
-
-      if (row[0]) worksheet[cellA].s = { font: { bold: true } };
-
-      worksheet[cellA].s = {
-        ...(worksheet[cellA].s || {}),
-        border: borderStyle
-      };
-
-      worksheet[cellB].s = {
-        ...(worksheet[cellB].s || {}),
-        border: borderStyle,
-        alignment: { wrapText: true }
-      };
-
+      worksheet[`A${i + 1}`] = worksheet[`A${i + 1}`] || { t: "s", v: "" };
+      worksheet[`B${i + 1}`] = worksheet[`B${i + 1}`] || { t: "s", v: "" };
+      if (row[0]) worksheet[`A${i + 1}`].s = { font: { bold: true } };
+      worksheet[`A${i + 1}`].s = Object.assign(worksheet[`A${i + 1}`].s || {}, { border: borderStyle });
+      worksheet[`B${i + 1}`].s = { border: borderStyle };
       if (row[0] === "" && row[1] === "") {
-        worksheet[cellA].s.fill = { fgColor: { rgb: "EDEDED" } };
-        worksheet[cellB].s.fill = { fgColor: { rgb: "EDEDED" } };
+        worksheet[`A${i + 1}`].s.fill = { fgColor: { rgb: "EDEDED" } };
+        worksheet[`B${i + 1}`].s.fill = { fgColor: { rgb: "EDEDED" } };
       }
     });
 
@@ -160,6 +116,13 @@ ${extractedData.socialization}`;
     saveAs(blob, fileName);
   }
 
+  const borderStyle = {
+    top: { style: "thin" },
+    bottom: { style: "thin" },
+    left: { style: "thin" },
+    right: { style: "thin" }
+  };
+
   return (
     <div className="p-6 space-y-6">
       <textarea
@@ -170,19 +133,25 @@ ${extractedData.socialization}`;
         style={{ width: "100%", padding: "10px" }}
       />
 
-      <div className="flex gap-4">
-        <input
-          type="time"
-          value={manualPickupTime}
-          onChange={(e) => setManualPickupTime(e.target.value)}
-          placeholder="Время подачи"
-        />
-        <input
-          type="time"
-          value={manualArrivalTime}
-          onChange={(e) => setManualArrivalTime(e.target.value)}
-          placeholder="Время прибытия"
-        />
+      <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
+        <div>
+          <label>Время подачи:</label><br />
+          <input
+            type="time"
+            value={manualPickupTime}
+            onChange={(e) => setManualPickupTime(e.target.value)}
+            style={{ padding: "5px" }}
+          />
+        </div>
+        <div>
+          <label>Время прибытия:</label><br />
+          <input
+            type="time"
+            value={manualArrivalTime}
+            onChange={(e) => setManualArrivalTime(e.target.value)}
+            style={{ padding: "5px" }}
+          />
+        </div>
       </div>
 
       <button

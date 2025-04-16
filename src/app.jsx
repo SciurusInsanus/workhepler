@@ -6,6 +6,8 @@ function FormParser() {
   const [input, setInput] = useState("");
   const [outputs, setOutputs] = useState({ tableRow: "", directorMsg: "", tableCopy: "" });
   const [data, setData] = useState({});
+  const [manualPickupTime, setManualPickupTime] = useState("");
+  const [manualArrivalTime, setManualArrivalTime] = useState("");
 
   function parseForm(text) {
     function extract(regex) {
@@ -26,8 +28,8 @@ function FormParser() {
       destination_address: extract(/пункта назначения:\s*(.+)/),
       return_needed: extract(/Понадобится ли транспортировка.*:\s*(.+)/),
       trip_date: extract(/Дата поездки[^\d]*(\d{4}-\d{2}-\d{2})/),
-      pickup_time: extract(/подача\s*([0-9:]+)/),
-      arrival_time: extract(/прием\s*([0-9:]+)/),
+      pickup_time: manualPickupTime || extract(/подача\s*([0-9:]+)/),
+      arrival_time: manualArrivalTime || extract(/прием\s*([0-9:]+)/),
       trip_purpose: extract(/Цель поездки:\s*(.+)/),
       car_reaction: extract(/переносит поездку.*:\s*(.+)/),
       socialization: extract(/степень социализации.*:\s*(.+)/),
@@ -61,7 +63,7 @@ function FormParser() {
 
     const directorMsg = `Катя, поступила заявка на ${extractedData.trip_date}\nАдрес подачи: ${extractedData.pickup_address}\nВид животного: ${extractedData.animal_type}\nПункт назначения: ${extractedData.destination_address}\nЦель поездки: ${extractedData.trip_purpose}\nВремя подачи: ${extractedData.pickup_time}\nВремя прибытия: ${extractedData.arrival_time}\nПоездка туда и обратно: ${extractedData.return_needed}\nДополнительная информация:\nКуратор - ${extractedData.full_name}`;
 
-    const tableCopy = `Дата: ${extractedData.trip_date.split('-').reverse().join('.')}\nВремя подачи: ${extractedData.pickup_time}\nАдрес подачи: ${extractedData.pickup_address}\nКонтактное лицо, тел.: ${extractedData.phone}, ${extractedData.full_name}\nВид животного: ${extractedData.animal_type}\n\nПункт назначения: ${extractedData.destination_address}\nВремя прибытия: ${extractedData.arrival_time}\nОсобые отметки: Поездка туда и обратно: ${extractedData.return_needed}\n${extractedData.socialization}`;
+    const tableCopy = `Дата: ${extractedData.trip_date?.split('-').reverse().join('.')}\nВремя подачи: ${extractedData.pickup_time}\nАдрес подачи: ${extractedData.pickup_address}\nКонтактное лицо, тел.: ${extractedData.phone}, ${extractedData.full_name}\nВид животного: ${extractedData.animal_type}\n\nПункт назначения: ${extractedData.destination_address}\nВремя прибытия: ${extractedData.arrival_time}\nОсобые отметки: Поездка туда и обратно: ${extractedData.return_needed}\n${extractedData.socialization}`;
 
     setOutputs({ tableRow, directorMsg, tableCopy });
   }
@@ -126,6 +128,28 @@ function FormParser() {
         rows={12}
         style={{ width: "100%", padding: "10px" }}
       />
+
+      <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
+        <div>
+          <label>Время подачи:</label><br />
+          <input
+            type="time"
+            value={manualPickupTime}
+            onChange={(e) => setManualPickupTime(e.target.value)}
+            style={{ padding: "5px" }}
+          />
+        </div>
+        <div>
+          <label>Время прибытия:</label><br />
+          <input
+            type="time"
+            value={manualArrivalTime}
+            onChange={(e) => setManualArrivalTime(e.target.value)}
+            style={{ padding: "5px" }}
+          />
+        </div>
+      </div>
+
       <button
         onClick={() => parseForm(input)}
         style={{ padding: "10px 20px", cursor: "pointer", marginTop: "10px" }}

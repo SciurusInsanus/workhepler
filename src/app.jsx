@@ -190,7 +190,7 @@ today,
       </div>
 
       <div>
-        <h3 className="font-semibold">Заявка для таблицы:</h3>
+        <h3 className="font-semibold">Заявка для водителя:</h3>
         <textarea value={outputs.tableCopy} readOnly rows={8} style={{ width: "100%", padding: "10px" }} />
         <button onClick={generateExcel} style={{ marginTop: "5px" }}>📄 Скачать как Excel</button>
       </div>

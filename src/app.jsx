@@ -39,7 +39,10 @@ function FormParser() {
 
     setData(extractedData);
 
+    const today = new Date().toLocaleDateString("ru-RU");
+
     const tableRow = [
+      today,
       extractedData.trip_date,
       extractedData.email,
       extractedData.rules_agreement,
@@ -61,14 +64,31 @@ function FormParser() {
       extractedData.return_needed
     ].join("\t");
 
-    const isCat = extractedData.animal_type.toLowerCase().includes("кошк");
-    const catCountLine = isCat && extractedData.animal_count
-      ? `Количество кошек: ${extractedData.animal_count}\n`
+    const animalCountNote = extractedData.animal_type.toLowerCase().includes("кошка")
+      ? `\nКоличество животных: ${extractedData.animal_count}`
       : "";
 
-    const directorMsg = `Катя, поступила заявка на ${extractedData.trip_date}\nАдрес подачи: ${extractedData.pickup_address}\nВид животного: ${extractedData.animal_type}\n${catCountLine}Пункт назначения: ${extractedData.destination_address}\nЦель поездки: ${extractedData.trip_purpose}\nВремя подачи: ${extractedData.pickup_time}\nВремя прибытия: ${extractedData.arrival_time}\nПоездка туда и обратно: ${extractedData.return_needed}\nДополнительная информация:\nКуратор - ${extractedData.full_name}`;
+    const directorMsg = `Катя, поступила заявка на ${extractedData.trip_date}
+Адрес подачи: ${extractedData.pickup_address}
+Вид животного: ${extractedData.animal_type}
+Пункт назначения: ${extractedData.destination_address}
+Цель поездки: ${extractedData.trip_purpose}
+Время подачи: ${extractedData.pickup_time}
+Время прибытия: ${extractedData.arrival_time}
+Поездка туда и обратно: ${extractedData.return_needed}
+Дополнительная информация:${animalCountNote}
+Куратор - ${extractedData.full_name}`;
 
-    const tableCopy = `Дата: ${extractedData.trip_date?.split('-').reverse().join('.')}\nВремя подачи: ${extractedData.pickup_time}\nАдрес подачи: ${extractedData.pickup_address}\nКонтактное лицо, тел.: ${extractedData.phone}, ${extractedData.full_name}\nВид животного: ${extractedData.animal_type}\n\nПункт назначения: ${extractedData.destination_address}\nВремя прибытия: ${extractedData.arrival_time}\nОсобые отметки: ${extractedData.return_needed === "Да" ? "Поездка туда и обратно" : "Поездка в один конец"}\n${extractedData.socialization}`;
+    const tableCopy = `Дата: ${extractedData.trip_date?.split('-').reverse().join('.')}
+Время подачи: ${extractedData.pickup_time}
+Адрес подачи: ${extractedData.pickup_address}
+Контактное лицо, тел.: ${extractedData.phone}, ${extractedData.full_name}
+Вид животного: ${extractedData.animal_type}
+
+Пункт назначения: ${extractedData.destination_address}
+Время прибытия: ${extractedData.arrival_time}
+Особые отметки: ${extractedData.return_needed === "Да" ? "Поездка туда и обратно" : "Поездка в один конец"}
+${extractedData.socialization}`;
 
     setOutputs({ tableRow, directorMsg, tableCopy });
   }
@@ -80,20 +100,17 @@ function FormParser() {
     document.body.appendChild(textarea);
     textarea.focus();
     textarea.select();
-
     try {
       const successful = document.execCommand("copy");
       alert(successful ? "Скопировано в буфер обмена!" : "Не удалось скопировать.");
     } catch (err) {
       alert("Ошибка при копировании: " + err);
     }
-
     document.body.removeChild(textarea);
   }
 
   function generateExcel() {
     const tripDirection = data.return_needed === "Да" ? "Поездка туда и обратно" : "Поездка в один конец";
-
     const rows = [
       ["Дата", data.trip_date?.split("-").reverse().join(".") || ""],
       ["Время подачи", data.pickup_time],
@@ -107,10 +124,8 @@ function FormParser() {
       ["", ""],
       ["Комментарии водителя:", ""]
     ];
-
     const worksheet = XLSX.utils.aoa_to_sheet(rows);
     worksheet['!cols'] = [{ wch: 30 }, { wch: 60 }];
-
     rows.forEach((row, i) => {
       worksheet[`A${i + 1}`] = worksheet[`A${i + 1}`] || { t: "s", v: "" };
       worksheet[`B${i + 1}`] = worksheet[`B${i + 1}`] || { t: "s", v: "" };
@@ -122,7 +137,6 @@ function FormParser() {
         worksheet[`B${i + 1}`].s.fill = { fgColor: { rgb: "EDEDED" } };
       }
     });
-
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Заявка");
     const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array", cellStyles: true });
@@ -147,7 +161,6 @@ function FormParser() {
         rows={12}
         style={{ width: "100%", padding: "10px" }}
       />
-
       <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
         <div>
           <label>Время подачи:</label><br />
@@ -168,26 +181,22 @@ function FormParser() {
           />
         </div>
       </div>
-
       <button
         onClick={() => parseForm(input)}
         style={{ padding: "10px 20px", cursor: "pointer", marginTop: "10px" }}
       >
         Обработать заявку
       </button>
-
       <div>
         <h3 className="font-semibold">Табличная строка:</h3>
         <textarea value={outputs.tableRow} readOnly rows={3} style={{ width: "100%", padding: "10px" }} />
         <button onClick={() => copyToClipboard(outputs.tableRow)} style={{ marginTop: "5px" }}>📋 Копировать</button>
       </div>
-
       <div>
         <h3 className="font-semibold">Сообщение директору:</h3>
         <textarea value={outputs.directorMsg} readOnly rows={8} style={{ width: "100%", padding: "10px" }} />
         <button onClick={() => copyToClipboard(outputs.directorMsg)} style={{ marginTop: "5px" }}>📋 Копировать</button>
       </div>
-
       <div>
         <h3 className="font-semibold">Заявка для таблицы:</h3>
         <textarea value={outputs.tableCopy} readOnly rows={8} style={{ width: "100%", padding: "10px" }} />

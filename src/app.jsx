@@ -61,14 +61,18 @@ function FormParser() {
       extractedData.return_needed
     ].join("\t");
 
-    const directorMsg = `Катя, поступила заявка на ${extractedData.trip_date}\nАдрес подачи: ${extractedData.pickup_address}\nВид животного: ${extractedData.animal_type}\nПункт назначения: ${extractedData.destination_address}\nЦель поездки: ${extractedData.trip_purpose}\nВремя подачи: ${extractedData.pickup_time}\nВремя прибытия: ${extractedData.arrival_time}\nПоездка туда и обратно: ${extractedData.return_needed}\nДополнительная информация:\nКуратор - ${extractedData.full_name}`;
+    const isCat = extractedData.animal_type.toLowerCase().includes("кошк");
+    const catCountLine = isCat && extractedData.animal_count
+      ? `Количество кошек: ${extractedData.animal_count}\n`
+      : "";
+
+    const directorMsg = `Катя, поступила заявка на ${extractedData.trip_date}\nАдрес подачи: ${extractedData.pickup_address}\nВид животного: ${extractedData.animal_type}\n${catCountLine}Пункт назначения: ${extractedData.destination_address}\nЦель поездки: ${extractedData.trip_purpose}\nВремя подачи: ${extractedData.pickup_time}\nВремя прибытия: ${extractedData.arrival_time}\nПоездка туда и обратно: ${extractedData.return_needed}\nДополнительная информация:\nКуратор - ${extractedData.full_name}`;
 
     const tableCopy = `Дата: ${extractedData.trip_date?.split('-').reverse().join('.')}\nВремя подачи: ${extractedData.pickup_time}\nАдрес подачи: ${extractedData.pickup_address}\nКонтактное лицо, тел.: ${extractedData.phone}, ${extractedData.full_name}\nВид животного: ${extractedData.animal_type}\n\nПункт назначения: ${extractedData.destination_address}\nВремя прибытия: ${extractedData.arrival_time}\nОсобые отметки: ${extractedData.return_needed === "Да" ? "Поездка туда и обратно" : "Поездка в один конец"}\n${extractedData.socialization}`;
 
     setOutputs({ tableRow, directorMsg, tableCopy });
   }
 
-  // ✅ Новый способ копирования (работает везде)
   function copyToClipboard(text) {
     const textarea = document.createElement("textarea");
     textarea.value = text;
